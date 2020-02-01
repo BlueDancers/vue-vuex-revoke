@@ -1,42 +1,46 @@
 <template>
   <div class="hello">
-    <input type="number" :value="num" @blur="setValue" />
+    <input type="number" :value="app.num" @blur="setValue" />
     <div>
       <button class="btn" @click="add">+</button>
       <button class="btn" @click="less">-</button>
+      <br />
       <button class="btn" @click="cancel">撤销</button>
+      <button class="btn" @click="uncancel">反撤销</button>
     </div>
   </div>
 </template>
-
+s
 <script lang="ts">
 import Vue from "vue";
-import app from "@/store/modules/app";
-// import { cancelHistory } from "@/store/plugins/index";
+import { cancelHistory, unCancelHistory } from "@/store/plugins/index";
 import history from "@/store/plugins/history";
+import { mapState } from "vuex";
 export default Vue.extend({
   name: "HelloWorld",
   props: {
     msg: String
   },
   computed: {
-    num() {
-      return app.state.num;
-    }
+    ...mapState({
+      app: "app"
+    })
   },
   methods: {
     add() {
-      this.$store.commit("SET_NUM", this.num + 1);
+      this.$store.commit("app/ADD_NUM");
     },
     less() {
-      this.$store.commit("SET_NUM", this.num - 1);
+      this.$store.commit("app/LESS_NUM");
     },
     setValue(e: any) {
-      this.$store.commit("SET_NUM", e.target.value);
+      this.$store.commit("app/SET_NUM", Number(e.target.value));
     },
     cancel() {
-      // cancelHistory();
-      history.undo();
+      cancelHistory();
+    },
+    uncancel() {
+      unCancelHistory();
     }
   }
 });

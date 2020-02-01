@@ -1,77 +1,62 @@
-// import { Store } from 'vuex';
-// import { cloneDeep } from 'lodash';
-// class History {
-//   store: Store<any> | any = '';
-//   state: any[] = []
-//   init(store: any) {
-//     console.log(store);
-//     this.store = store
-//   }
-//   setState(state: any) {
-//     this.state.push(state)
-//   }
-//   getState() {
-//     return this.state
-//   }
-//   replaceState() {
-//     // 回退
-//     this.store.replaceState(cloneDeep(this.state[this.state.length - 1]))
-//     console.log(this.store);
-//     // 去除数组一位
-//     this.state.pop()
-//   }
-// }
-
-// export default History;
-
-import { cloneDeep } from 'lodash'
-
-class UndoRedoHistory {
-  store: any;
-  history: any[] = [];
-  currentIndex = -1;
-
-  get canUndo() {
-    return this.currentIndex > 0
-  }
-
-  get canRedo() {
-    return this.history.length > this.currentIndex + 1
-  }
-
+import { Store } from 'vuex';
+import { cloneDeep } from 'lodash';
+class History {
+  store: Store<any> | any = ''; // vuex实例
+  state: any[] = []; // 历史状态
+  index: number = 0; // 当前状态下标
+  maxState: number = 20 // 最大保存状态个数 (防止爆栈)
   init(store: any) {
     this.store = store
   }
-
-  addState(state: any) {
-    // may be we have to remove redo steps
-    if (this.currentIndex + 1 < this.history.length) {
-      this.history.splice(this.currentIndex + 1)
+  setState(state: any) {
+    debounce(() => {
+      // 限制长度
+      if (this.state.length >= this.maxState) {
+        this.state.shift()
+      }
+      // 如果this.state.length 与this.index不一致说明,当前指针发生了变化,所以将指针后面的都去掉
+      if (this.index < this.state.length - 1) {
+        this.state.splice(this.index + 1, this.state.length - 1)
+      }
+      this.state.push(state)
+      this.index = this.state.length - 1 // 方便下标的计算 都从0开始计算
+    }, 100)
+  }
+  getState() {
+    return this.state
+  }
+  replaceState() {
+    // 撤销
+    if (this.index > 0) {
+      this.index--
+      let state = cloneDeep(this.state[this.index])
+      this.store.replaceState(state)
+    } else {
+      alert('已经无法再进行撤回')
     }
-    this.history.push(state)
-    this.currentIndex++
   }
-
-  undo() {
-    if (!this.canUndo) return
-    const prevState = this.history[this.currentIndex - 1]
-    // take a copy of the history state
-    // because it would be changed during store mutations
-    // what would corrupt the undo-redo-history
-    // (same on redo)
-    this.store.replaceState(cloneDeep(prevState))
-    console.log(this.store);
-    this.currentIndex--
-  }
-
-  redo() {
-    if (!this.canRedo) return
-    const nextState = this.history[this.currentIndex + 1]
-    this.store.replaceState(cloneDeep(nextState))
-    this.currentIndex++
+  unReplaceState() {
+    if (this.state.length - 1 > this.index) {
+      // 反撤销
+      this.index++
+      let state = cloneDeep(this.state[this.index])
+      this.store.replaceState(state)
+    } else {
+      alert('已经无法再进行操作')
+    }
   }
 }
 
-const undoRedoHistory = new UndoRedoHistory()
+export default History;
 
-export default undoRedoHistory
+
+let timeout: any = null;
+/**
+ * 去抖函数封装体
+ * @param {Fun} fn 执行函数
+ * @param {Number} wait 触发时间 
+ */
+export function debounce(fn: Function, wait: number) {
+  if (timeout !== null) clearTimeout(timeout);
+  timeout = setTimeout(fn, wait);
+}
