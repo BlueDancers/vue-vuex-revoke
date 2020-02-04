@@ -7,16 +7,17 @@ let history = new History()
 /**
  * 不需要记录的mutation
  */
-const filterMutation = [
+const filterMutation: any[] = [
   'app/SET_NUM'
 ]
+const maxState: number = 20
 /**
  *  监听vuex的行为
  * @param store vuex实例
  */
 export default function index(store: Store<any>) {
   // 保存vuex的实例
-  history.init(store);
+  history.init(store, maxState);
   // 保存初始状态
   history.setState(cloneDeep(store.state))
   store.subscribe((mutation, state) => {

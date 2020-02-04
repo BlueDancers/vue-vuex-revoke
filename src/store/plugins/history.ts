@@ -1,14 +1,15 @@
 import { Store } from 'vuex';
 import { cloneDeep } from 'lodash';
 class History {
-  store: Store<any> | any = ''; // vuex实例
-  state: any[] = []; // 历史状态
-  index: number = 0; // 当前状态下标
-  maxState: number = 20 // 最大保存状态个数 (防止爆栈)
-  init(store: any) {
+  private store: Store<any> | any = ''; // vuex实例
+  private state: any[] = []; // 历史状态
+  private index: number = 0; // 当前状态下标
+  private maxState: number = 20 // 最大保存状态个数 (防止爆栈)
+  public init(store: any, maxState: number) {
     this.store = store
+    this.maxState = maxState
   }
-  setState(state: any) {
+  public setState(state: any) {
     debounce(() => {
       // 限制长度
       if (this.state.length >= this.maxState) {
@@ -22,10 +23,13 @@ class History {
       this.index = this.state.length - 1 // 方便下标的计算 都从0开始计算
     }, 100)
   }
-  getState() {
+  /**
+   * 获取快照 用于调试
+   */
+  private getState() {
     return this.state
   }
-  replaceState() {
+  public replaceState() {
     // 撤销
     if (this.index > 0) {
       this.index--
@@ -35,7 +39,7 @@ class History {
       alert('已经无法再进行撤回')
     }
   }
-  unReplaceState() {
+  public unReplaceState() {
     if (this.state.length - 1 > this.index) {
       // 反撤销
       this.index++
