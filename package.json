@@ -9,7 +9,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.149",
     "core-js": "^3.4.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "vue": "^2.6.10",
     "vuex": "^3.1.2"
   },
